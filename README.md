@@ -34,17 +34,16 @@ Mas copiar e colar o código em cada um dos sites, de modo manual, me parecia um
 
 *Conto com sua ajuda nos pontos acima :D*
 
-2. O meu ambiente é um CentOS 7 com o [painel CWP](https://control-webpanel.com/) rodando. Pode ser que em outros ambientes você precise fazer alguma alteração no código (como a estrutura do diretório "home" ou o comando correto para reinicializar o Apache).
+2. O meu ambiente é um CentOS 7 com o [painel CWP](https://control-webpanel.com/) rodando. Pode ser que em outros ambientes você precise fazer alguma alteração no código (como a estrutura do diretório "home" ou o comando para reinicializar o Apache).
 
 ## Explicação do código ##
 
-`find /home/ -type f -name "xmlrpc.php" -not -path "*wp-content*" -printf '%h\n' | sort -u >> wps.txt`
+```
+find /home/ -type f -name "xmlrpc.php" -not -path "*wp-content*" -printf '%h\n' | sort -u >> wps.txt
+readarray wps < wps.txt
+```
 
-Procura por diretórios em `/home` que contenham o arquivo `xmlrpc.php`, excluindo as subpastas `wp-content`, e armazena em ordem alfabética num arquivo de texto temporário chamado `wps.txt`.
-
-`readarray wps < wps.txt`
-
-Lê os dados do arquivo temporário e armazena os valores num array.
+Procura por diretórios em `/home` que contenham o arquivo `xmlrpc.php`, excluindo as subpastas `wp-content` e armazena os valores num array.
 
 ```
 for wp in ${wps[@]}
@@ -56,16 +55,16 @@ done
 
 Para cada diretório encontrado no comando anterior, executa uma busca por arquivos `.htaccess` que não contenham o código `<Files xmlrpc.php>`, adiciona-os a um arquivo temporário e armazena os valores num array.
 
-> Reconheço que aqui existe uma "ponta solta" no sentido que apenas a primeira linha do código está sendo buscada no arquivo, enquanto deveria ser todo o trecho. Porém, ainda não consegui resolver esse empecilho, então é um começo e conto com sua participação para melhorá-lo.
+> Reconheço que aqui existe uma "ponta solta" no sentido que apenas a primeira linha do código está sendo buscada no arquivo, enquanto deveria ser todo o trecho. Porém, ainda não consegui resolver esse empecilho, então considere apenas um começo e conto com sua participação para melhorá-lo.
 
 ```
 nfiles=${#files[@]}
 if [ $nfiles == 0 ]
 	then
 		echo "Todos os arquivos já contém o código. Até mais!"
-		exit
+exit
 ```
-Faz uma verificação do tamanho do array (quantos arquivos foram encontrados) e, se for igual a zero, finaliza o código.
+Faz uma verificação do tamanho do array (ou seja, quantos arquivos foram encontrados) e, se for igual a zero, finaliza o código.
 
 ```
 else
@@ -81,7 +80,7 @@ else
 	       	do
 		echo "		
 
-Block WordPress xmlrpc.php requests
+#Block WordPress xmlrpc.php requests
 
 <Files xmlrpc.php>
 order deny,allow
@@ -91,7 +90,7 @@ deny from all
         	done
 	fi
 ```
-Se tiver um ou mais arquivos encontrados, adiciona o bloco de código para bloqueio do XMLRPC Request a cada um deles.
+Se tiver um ou mais arquivos encontrados, adiciona o bloco de código a cada um deles.
 
 ```
 while true;
@@ -113,7 +112,7 @@ Não hesite em deixar suas críticas ou sugestões. Estou aberto a melhorias!
 
 Fiz esse código por hobbie e para exercitar meu conhecimento em programação, mas espero de coração que ele seja útil a alguém. Se for, deixe eu ficar sabendo, por favor! :)
 
-Dica: você pode implementar como um `cronjob` para executá-lo de tempos em tempos automaticamente no seu servidor.
+Dica: você pode implementar como um `cronjob` para executá-lo de tempos em tempos automaticamente no seu servidor (aqui eu vou deixar 1 vez por mês).
 
 ## Agradecimentos ## 
 
