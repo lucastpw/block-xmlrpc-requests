@@ -29,7 +29,7 @@ nfiles=${#files[@]}
 	       	do
 		echo "		
 
-Block WordPress xmlrpc.php requests
+#Block WordPress xmlrpc.php requests
 
 <Files xmlrpc.php>
 order deny,allow
