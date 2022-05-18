@@ -37,13 +37,15 @@ Mas copiar e colar o código em cada um dos sites, de modo manual, me parecia um
 2. O meu ambiente é um CentOS 7 com o [painel CWP](https://control-webpanel.com/) rodando. Pode ser que em outros ambientes você precise fazer alguma alteração no código (como a estrutura do diretório "home" ou o comando para reinicializar o Apache).
 
 ## Explicação do código ##
+Procura por diretórios em `/home` que contenham o arquivo `xmlrpc.php`, excluindo as subpastas `wp-content` e armazena os valores num array:
 
 ```
 find /home/ -type f -name "xmlrpc.php" -not -path "*wp-content*" -printf '%h\n' | sort -u >> wps.txt
 readarray wps < wps.txt
 ```
+Para cada diretório encontrado no comando anterior, executa uma busca por arquivos `.htaccess` que não contenham o código `<Files xmlrpc.php>`, adiciona-os a um arquivo temporário e armazena os valores num array:
 
-Procura por diretórios em `/home` que contenham o arquivo `xmlrpc.php`, excluindo as subpastas `wp-content` e armazena os valores num array.
+> Reconheço que aqui existe uma "ponta solta" no sentido que apenas a primeira linha do código está sendo buscada no arquivo, enquanto deveria ser todo o trecho. Porém, ainda não consegui resolver esse empecilho, então considere apenas um começo e conto com sua participação para melhorá-lo.
 
 ```
 for wp in ${wps[@]}
@@ -52,10 +54,7 @@ for wp in ${wps[@]}
     readarray files < files.txt
 done
 ```
-
-Para cada diretório encontrado no comando anterior, executa uma busca por arquivos `.htaccess` que não contenham o código `<Files xmlrpc.php>`, adiciona-os a um arquivo temporário e armazena os valores num array.
-
-> Reconheço que aqui existe uma "ponta solta" no sentido que apenas a primeira linha do código está sendo buscada no arquivo, enquanto deveria ser todo o trecho. Porém, ainda não consegui resolver esse empecilho, então considere apenas um começo e conto com sua participação para melhorá-lo.
+Faz uma verificação do tamanho do array (ou seja, quantos arquivos foram encontrados) e, se for igual a zero, finaliza o código:
 
 ```
 nfiles=${#files[@]}
@@ -64,8 +63,7 @@ if [ $nfiles == 0 ]
 		echo "Todos os arquivos já contém o código. Até mais!"
 exit
 ```
-Faz uma verificação do tamanho do array (ou seja, quantos arquivos foram encontrados) e, se for igual a zero, finaliza o código.
-
+Se tiver um ou mais arquivos encontrados, adiciona o bloco de código a cada um deles:
 ```
 else
 	if [ $nfiles == 1 ]
@@ -90,7 +88,7 @@ deny from all
         	done
 	fi
 ```
-Se tiver um ou mais arquivos encontrados, adiciona o bloco de código a cada um deles.
+Simples validação, com interação do usuário, para reiniciar o Apache após a execução das tarefas:
 
 ```
 while true;
@@ -101,10 +99,8 @@ do
      [Nn]*) exit;;
      * ) echo "Entrada inválida.";;
     esac
-done
+    done
 ```
-
-Simples validação, com interação do usuário, para reiniciar o Apache após a execução das tarefas.
 
 ## Considerações finais ##
 
